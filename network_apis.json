@@ -1,0 +1,11 @@
+{
+  "apis": [
+    {
+      "method": "GET",
+      "url": "https://virtual-games.virtustec.com/desktop-v4/default/?checkScroll=true&containerId=golden-race-desktop-app&profile=sportybet-dark&hwId=49690d2f-0517-46ff-bd66-6aedd9958826&showHeader=true&version=v4"
+    }
+  ],
+  "websockets": [
+    "wss://virtual-proxy.virtustec.com/vs"
+  ]
+}

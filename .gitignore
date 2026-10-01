@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and sensitive credentials
+.env
+auth.json
+
+# Persistent browser profile & cache
+chrome_profile/
+chrome_user_data/
+*.png
+*.html
+*.txt
+ws_messages.json
+sportylog.md
+*.log
+
+# Database files
+journal.db
+journal.db-wal
+journal.db-shm
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Temporary / OS files
+.DS_Store
+Thumbs.db

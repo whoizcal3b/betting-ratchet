@@ -1,0 +1,30 @@
+[
+  {
+    "action": "SAVE_AUTH",
+    "details": "Saved auth state to C:\\Users\\Public\\virtual ratchet\\auth.json"
+  },
+  {
+    "action": "ALREADY_ON_VIRTUALS",
+    "details": "https://www.sportybet.com/ng/virtual/"
+  },
+  {
+    "action": "DETECT_FRAMES",
+    "details": "Found 2 frames"
+  },
+  {
+    "action": "FRAME_0",
+    "details": "https://www.sportybet.com/ng/virtual/"
+  },
+  {
+    "action": "FRAME_1",
+    "details": "https://virtual-games.virtustec.com/desktop-v4/default/?checkScroll=true&containerId=golden-race-desktop-app&profile=sportybet-dark&onlineHash=72eb40e2f5724401aef83efe4adb8a9b&showHeader=true&version=v4#/scheduled/speedway/playlist/23100"
+  },
+  {
+    "action": "IDENTIFIED_GAME_FRAME",
+    "details": "https://virtual-games.virtustec.com/desktop-v4/default/?checkScroll=true&containerId=golden-race-desktop-app&profile=sportybet-dark&onlineHash=72eb40e2f5724401aef83efe4adb8a9b&showHeader=true&version=v4#/scheduled/speedway/playlist/23100"
+  },
+  {
+    "action": "FRAME_NAV_ERROR",
+    "details": "Frame.wait_for_selector: Unexpected token \"=\" while parsing css selector \"a:has-text('Speedway'), [class*='speedway'], text=Speedway\". Did you mean to CSS.escape it?\nCall log:\n  - waiting for a:has-text('Speedway'), [class*='speedway'], text=Speedway to be visible\n"
+  }
+]

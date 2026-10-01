@@ -1,0 +1,18 @@
+[Unit]
+Description=Virtual Ratchet 24/7 High-Water Mark Automated Betting Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/ubuntu/virtual_ratchet
+ExecStart=/home/ubuntu/virtual_ratchet/venv/bin/python3 /home/ubuntu/virtual_ratchet/bot.py
+Restart=always
+RestartSec=5
+KillMode=process
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
