@@ -7,7 +7,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/betting-ratchet
 Environment=PYTHONUNBUFFERED=1
-ExecStartPre=/usr/bin/pkill -9 -f chrome-headless || true
+ExecStartPre=-/usr/bin/pkill -9 -f chrome-headless
 ExecStart=/home/ubuntu/betting-ratchet/venv/bin/python3 -u /home/ubuntu/betting-ratchet/bot.py
 Restart=always
 RestartSec=10
