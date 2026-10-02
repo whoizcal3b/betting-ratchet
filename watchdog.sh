@@ -44,12 +44,17 @@ while true; do
         fi
     fi
 
-    # 3. Check WireGuard VPN Health
+    # 3. Check WireGuard VPN Health & Active Nigerian Geo-Lock
     if command -v wg >/dev/null 2>&1; then
-        WG_STATUS=$(sudo wg show wg0 2>/dev/null || echo "")
-        if [ -z "$WG_STATUS" ]; then
-            echo "[$(date)] [WATCHDOG] WireGuard wg0 tunnel is down! Reconnecting..."
-            sudo wg-quick up wg0 || sudo systemctl restart wg-quick@wg0
+        IS_NG=$(curl -s --max-time 4 ip-api.com/json 2>/dev/null | grep -i "Nigeria" || echo "")
+        if [ -z "$IS_NG" ]; then
+            echo "[$(date)] [WATCHDOG CRITICAL] VPN tunnel not routing through Nigeria! Self-healing WireGuard wg0..."
+            sudo ip link delete wg0 2>/dev/null || true
+            sudo wg-quick up wg0 2>/dev/null || true
+            sudo ip link set dev wg0 mtu 1360 2>/dev/null || true
+            sleep 3
+            # Restart bot to reload fresh Nigerian session
+            sudo systemctl restart $SERVICE_NAME
         fi
     fi
 
