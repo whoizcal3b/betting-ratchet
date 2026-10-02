@@ -22,6 +22,16 @@ class BrowserManager:
 
         os.makedirs(self.user_data_dir, exist_ok=True)
 
+        # 24/7 VPS Guard: Clear stale Chromium Singleton lock files if present
+        for lock_name in ["SingletonLock", "SingletonSocket", "SingletonCookie"]:
+            lock_path = os.path.join(self.user_data_dir, lock_name)
+            if os.path.exists(lock_path) or os.path.islink(lock_path):
+                try:
+                    os.unlink(lock_path) if os.path.islink(lock_path) else os.remove(lock_path)
+                    print(f"[BROWSER] Cleaned stale {lock_name} from profile directory.")
+                except Exception:
+                    pass
+
         launch_kwargs = {
             "user_data_dir": self.user_data_dir,
             "headless": self.headless,
@@ -103,20 +113,32 @@ class BrowserManager:
         except Exception:
             print("[BROWSER] Session initializing, checking for game frame...")
 
-        # 3. Wait for VirtusTec game frame
+        # 3. Wait for VirtusTec game frame with self-healing reload retry
         print("[BROWSER] Waiting for VirtusTec game frame to attach...")
         game_frame = None
-        for s in range(35):
-            for f in self.page.frames:
-                if "virtustec" in f.url.lower() or "golden-race" in f.url.lower():
-                    game_frame = f
+        for attempt in range(1, 3):
+            for s in range(40):
+                for f in self.page.frames:
+                    if "virtustec" in f.url.lower() or "golden-race" in f.url.lower():
+                        game_frame = f
+                        break
+                if game_frame:
                     break
+                await asyncio.sleep(1)
+
             if game_frame:
                 break
-            await asyncio.sleep(1)
+
+            if attempt < 2:
+                print(f"[BROWSER] VirtusTec frame not mounted after 40s (attempt {attempt}/2). Reloading SportyBet Virtuals...")
+                try:
+                    await self.page.reload(wait_until="domcontentloaded", timeout=45000)
+                    await asyncio.sleep(4)
+                except Exception as r_err:
+                    print(f"[BROWSER] Reload notice: {r_err}")
 
         if not game_frame:
-            raise RuntimeError("VirtusTec game frame failed to mount within 35s.")
+            raise RuntimeError("VirtusTec game frame failed to mount after 2 reload attempts (80s).")
 
         self.game_frame = game_frame
         print(f"[BROWSER] VirtusTec Game Frame mounted: {game_frame.url[:85]}...")
@@ -126,8 +148,14 @@ class BrowserManager:
         await game_frame.evaluate(f"() => {{ window.location.hash = '{config.BRISTOL_ROUTE}'; }}")
         await asyncio.sleep(3)
 
-        # 5. Wait for open market panels to be visible
-        await game_frame.wait_for_selector(".market.open", timeout=30000)
+        # 5. Wait for open market panels to be visible with auto-rehash fallback
+        try:
+            await game_frame.wait_for_selector(".market.open", timeout=25000)
+        except Exception:
+            print("[BROWSER] Market panels not immediately visible. Re-applying hash route...")
+            await game_frame.evaluate(f"() => {{ window.location.hash = '{config.BRISTOL_ROUTE}'; }}")
+            await game_frame.wait_for_selector(".market.open", timeout=20000)
+
         print("[BROWSER] Bristol Speedway market panels loaded and verified!")
         return self.game_frame
 
@@ -268,8 +296,34 @@ class BrowserManager:
     def is_healthy(self) -> bool:
         """Returns True if browser context and page are active and responsive."""
         try:
-            return bool(self.context and self.page and not self.page.is_closed() and self.game_frame)
+            if not (self.context and self.page and not self.page.is_closed() and self.game_frame):
+                return False
+            if self.game_frame.is_detached():
+                return False
+            return True
         except Exception:
+            return False
+
+    async def ensure_bristol_route(self) -> bool:
+        """Verifies that the VirtusTec iframe is still active and routed to Bristol Speedway."""
+        if not self.game_frame or self.game_frame.is_detached():
+            return False
+        try:
+            current_hash = await self.game_frame.evaluate("() => window.location.hash")
+            if config.BRISTOL_ROUTE not in current_hash:
+                print(f"[BROWSER] Route drift detected ('{current_hash}'). Re-routing to Bristol Speedway...")
+                await self.game_frame.evaluate(f"() => {{ window.location.hash = '{config.BRISTOL_ROUTE}'; }}")
+                await asyncio.sleep(2)
+            # Check if market panels exist
+            panels = await self.game_frame.query_selector_all(".market.open")
+            if not panels:
+                print("[BROWSER] Open market panels missing. Re-evaluating Bristol route...")
+                await self.game_frame.evaluate(f"() => {{ window.location.hash = '{config.BRISTOL_ROUTE}'; }}")
+                await asyncio.sleep(2)
+                panels = await self.game_frame.query_selector_all(".market.open")
+            return bool(panels)
+        except Exception as e:
+            print(f"[BROWSER] Route verification notice: {e}")
             return False
 
     async def restart_and_recover(self) -> Frame:

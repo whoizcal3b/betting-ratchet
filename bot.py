@@ -146,6 +146,7 @@ class VirtualRatchetBot:
 
         processed_races = set()
         races_since_last_hygiene = 0
+        no_race_watchdog_ticks = 0
 
         print("\n[*] Starting continuous 2-minute race cycle monitoring...\n")
 
@@ -156,6 +157,7 @@ class VirtualRatchetBot:
                     print("[!] Browser connection lost or page closed. Recovering...")
                     await self.browser_manager.restart_and_recover()
                     self.ws_listener.attach_to_page(self.browser_manager.page)
+                    no_race_watchdog_ticks = 0
 
                 # 24/7 Memory Hygiene: Refresh page every 180 races (~6 hours) during idle window
                 if races_since_last_hygiene >= 180:
@@ -163,6 +165,7 @@ class VirtualRatchetBot:
                         print("\n[*] [24/7 MAINTENANCE] Performing scheduled Chromium memory hygiene...")
                         await self.browser_manager.navigate_to_bristol()
                         races_since_last_hygiene = 0
+                        no_race_watchdog_ticks = 0
                         print("[+] Maintenance complete! RAM flushed, continuing cycle.\n")
                     except Exception as m_err:
                         print(f"[!] Maintenance notice: {m_err}")
@@ -170,8 +173,19 @@ class VirtualRatchetBot:
                 # 3. Get upcoming race details
                 race = await self.browser_manager.get_upcoming_race()
                 if not race:
+                    no_race_watchdog_ticks += 1
+                    if no_race_watchdog_ticks == 15:  # ~30 seconds of missing race
+                        print("[WATCHDOG] No upcoming race panel visible for 30s. Checking frame route...")
+                        await self.browser_manager.ensure_bristol_route()
+                    elif no_race_watchdog_ticks >= 45:  # ~90 seconds of missing race
+                        print("[WATCHDOG] No race panels detected for 90s! Recovering browser and reloading session...")
+                        await self.browser_manager.restart_and_recover()
+                        self.ws_listener.attach_to_page(self.browser_manager.page)
+                        no_race_watchdog_ticks = 0
                     await asyncio.sleep(2)
                     continue
+
+                no_race_watchdog_ticks = 0
 
                 race_id = race["race_id"]
                 seconds_left = race["seconds_left"]
@@ -367,6 +381,11 @@ class VirtualRatchetBot:
                                         res = self.math_engine.evaluate_result(is_win=is_win, odds=target["place_odd"], stake=stake)
                                         self.db.settle_bet(bet_id=bet_id, result=res["result"], pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
                                         self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=1 if is_win else 0, losses=0 if is_win else 1)
+                                elif config.BOT_MODE == "PAPER":
+                                    print(f"[*] Paper simulation: WebSocket timed out for race #{race_id}. Settling conservative LOSS to preserve ledger integrity.")
+                                    res = self.math_engine.evaluate_result(is_win=False, odds=target["place_odd"], stake=stake)
+                                    self.db.settle_bet(bet_id=bet_id, result="LOSS", pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
+                                    self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=0, losses=1)
                         else:
                             print(f"[!] Failed to place bet in betslip for race #{race_id}. Skipping.")
                             processed_races.add(race_id)
@@ -388,9 +407,19 @@ class VirtualRatchetBot:
                 await self.telegram.notify_error(str(loop_err), "Main loop execution")
                 await asyncio.sleep(5)
 
-if __name__ == "__main__":
+async def main():
     bot = VirtualRatchetBot()
     try:
-        asyncio.run(bot.run())
+        await bot.run()
+    finally:
+        print("\n[BOT] Cleaning up browser and sub-processes...")
+        try:
+            await bot.browser_manager.close()
+        except Exception:
+            pass
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
     except KeyboardInterrupt:
         print("\n[*] Bot stopped by user.")
