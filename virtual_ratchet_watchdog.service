@@ -1,0 +1,16 @@
+[Unit]
+Description=Virtual Ratchet 24/7 Fail-Safe External Watchdog Supervisor
+After=virtual_ratchet.service network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/ubuntu/betting-ratchet
+ExecStart=/bin/bash /home/ubuntu/betting-ratchet/watchdog.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

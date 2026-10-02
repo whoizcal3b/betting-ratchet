@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import datetime
+import time
 from typing import Optional, Dict, Any
 
 import config
@@ -152,6 +153,18 @@ class VirtualRatchetBot:
 
         while True:
             try:
+                # 24/7 Heartbeat: Signal OS supervisor that engine is actively cycling
+                try:
+                    with open("/tmp/virtual_ratchet_heartbeat", "w") as hbf:
+                        hbf.write(f"{time.time()}\n")
+                except Exception:
+                    pass
+
+                # 24/7 WebSocket Stream Liveness Check
+                if not self.ws_listener.is_stream_alive(max_idle_seconds=60.0):
+                    print("[WATCHDOG] WebSocket feed idle for >60s. Refreshing frame route to restore stream...")
+                    await self.browser_manager.ensure_bristol_route()
+
                 # 24/7 Browser Health Verification
                 if not self.browser_manager.is_healthy():
                     print("[!] Browser connection lost or page closed. Recovering...")
@@ -280,112 +293,15 @@ class VirtualRatchetBot:
 
                         if bet_success:
                             processed_races.add(race_id)
-
-                            # 5. Wait for WebSocket RESOLVED event
-                            target_eblock = int(race_id) if race_id.isdigit() else None
-                            resolved_event = await self.ws_listener.wait_for_resolution(
-                                target_eblock_id=target_eblock,
-                                timeout=110.0
-                            )
-
-                            if resolved_event:
-                                won_markets = resolved_event["won_markets"]
-                                final_order = resolved_event["final_order"]
-
-                                # Settle race in DB
-                                self.db.settle_race(
+                            # Decoupled Asynchronous Settlement: Hand off to concurrent task so main loop never blocks
+                            asyncio.create_task(
+                                self._settle_bet_async(
+                                    bet_id=bet_id,
                                     race_id=race_id,
-                                    eblock_id=resolved_event["eblock_id"],
-                                    final_order=final_order,
-                                    won_markets=won_markets
-                                )
-
-                                # Evaluate win/loss
-                                place_key = f"place_{target['runner_num']}"
-                                is_win = place_key in won_markets
-
-                                res = self.math_engine.evaluate_result(
-                                    is_win=is_win,
-                                    odds=target["place_odd"],
+                                    target=target,
                                     stake=stake
                                 )
-
-                                # Settle bet in DB
-                                self.db.settle_bet(
-                                    bet_id=bet_id,
-                                    result=res["result"],
-                                    pnl=res["pnl"],
-                                    balance_after=res["balance_after"],
-                                    peak_after=res["peak_after"],
-                                    drawdown_pct=res["drawdown_pct"],
-                                    mdd_pct=res["mdd_trough_pct"]
-                                )
-
-                                # Update Account State Singleton
-                                self.db.update_account_state(
-                                    current_balance=res["balance_after"],
-                                    peak_balance=res["peak_after"],
-                                    max_drawdown=res["mdd_trough_pct"],
-                                    wins=1 if is_win else 0,
-                                    losses=0 if is_win else 1
-                                )
-
-                                # Check and dispatch Telegram Milestones
-                                updated_state = self.db.load_account_state()
-                                self._check_and_send_milestones(
-                                    total_bets=updated_state["total_bets"],
-                                    total_wins=updated_state["total_wins"]
-                                )
-
-                                # Check if balance hit 0 (Bust condition)
-                                if config.BOT_MODE == "LIVE" and res["balance_after"] <= 0:
-                                    highest_gain = ((res["peak_after"] - config.INITIAL_BALANCE) / config.INITIAL_BALANCE * 100) if config.INITIAL_BALANCE > 0 else 0
-                                    await self.telegram.notify_bust(
-                                        current_balance=0.0,
-                                        peak_balance=res["peak_after"],
-                                        highest_gain_pct=highest_gain,
-                                        total_bets=updated_state["total_bets"],
-                                        mdd_trough=res["mdd_trough_pct"]
-                                    )
-                                    print("\n[CRITICAL] LIVE account liquidated. Bot halted.")
-                                    break
-                                elif config.BOT_MODE == "PAPER" and res["balance_after"] <= 0:
-                                    dd_r = self.math_engine.get_current_drawdown_r()
-                                    print(f" ⚠️ [UNCONSTRAINED PAPER MODE] Drawdown extended: {res['drawdown_pct']:.2f}% (-{dd_r:.1f}R). Continuing simulation...")
-
-                                # Print Results Banner with R-multiples
-                                r_mult = (target["place_odd"] - 1.0) if is_win else -1.0
-                                print("\n" + "=" * 55)
-                                if is_win:
-                                    print(f" 🎉 [WIN +{r_mult:.2f}R] Runner #{target['runner_num']} placed! PnL: +NGN {res['pnl']:,.2f}")
-                                else:
-                                    print(f" ❌ [LOSS -1.00R] Runner #{target['runner_num']} did not place. PnL: -NGN {abs(res['pnl']):,.2f}")
-
-                                print(f"    Current Balance:  NGN {res['balance_after']:,.2f}")
-                                print(f"    Peak Balance:     NGN {res['peak_after']:,.2f} {'(NEW HIGH-WATER MARK!)' if res['is_new_peak'] else ''}")
-                                r_step = 100.0 / config.DEFAULT_DIVISOR
-                                dd_r = self.math_engine.get_current_drawdown_r()
-                                mdd_r = res['mdd_trough_pct'] / r_step if r_step > 0 else 0
-                                print(f"    Current Drawdown: {res['drawdown_pct']:.2f}% (-{dd_r:.1f}R)")
-                                print(f"    True MDD Trough:  {res['mdd_trough_pct']:.2f}% (-{mdd_r:.1f}R)")
-                                print("=" * 55 + "\n")
-
-                            else:
-                                print(f"[!] WebSocket resolution timed out for race #{race_id}.")
-                                # Fallback resolution for LIVE mode: sync live platform balance
-                                if config.BOT_MODE == "LIVE":
-                                    live_bal = await self.browser_manager.get_account_balance()
-                                    if live_bal > 0:
-                                        is_win = (live_bal > self.math_engine.current_balance)
-                                        print(f"[*] Live platform balance fallback check: NGN {live_bal:,.2f} (Inferred: {'WIN' if is_win else 'LOSS'})")
-                                        res = self.math_engine.evaluate_result(is_win=is_win, odds=target["place_odd"], stake=stake)
-                                        self.db.settle_bet(bet_id=bet_id, result=res["result"], pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
-                                        self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=1 if is_win else 0, losses=0 if is_win else 1)
-                                elif config.BOT_MODE == "PAPER":
-                                    print(f"[*] Paper simulation: WebSocket timed out for race #{race_id}. Settling conservative LOSS to preserve ledger integrity.")
-                                    res = self.math_engine.evaluate_result(is_win=False, odds=target["place_odd"], stake=stake)
-                                    self.db.settle_bet(bet_id=bet_id, result="LOSS", pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
-                                    self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=0, losses=1)
+                            )
                         else:
                             print(f"[!] Failed to place bet in betslip for race #{race_id}. Skipping.")
                             processed_races.add(race_id)
@@ -406,6 +322,114 @@ class VirtualRatchetBot:
                 print(f"[!] Error in main loop: {loop_err}")
                 await self.telegram.notify_error(str(loop_err), "Main loop execution")
                 await asyncio.sleep(5)
+
+    async def _settle_bet_async(self, bet_id: int, race_id: str, target: Dict[str, Any], stake: float):
+        """Asynchronously waits for race resolution and settles the bet without blocking upcoming races."""
+        target_eblock = int(race_id) if race_id.isdigit() else None
+        print(f"[*] [SETTLEMENT WORKER] Tracking live resolution for Race #{race_id} (Runner #{target['runner_num']})...")
+
+        resolved_event = await self.ws_listener.wait_for_resolution(
+            target_eblock_id=target_eblock,
+            timeout=50.0
+        )
+
+        if resolved_event:
+            won_markets = resolved_event["won_markets"]
+            final_order = resolved_event["final_order"]
+
+            # Settle race in DB
+            self.db.settle_race(
+                race_id=race_id,
+                eblock_id=resolved_event["eblock_id"],
+                final_order=final_order,
+                won_markets=won_markets
+            )
+
+            # Evaluate win/loss
+            place_key = f"place_{target['runner_num']}"
+            is_win = place_key in won_markets
+
+            res = self.math_engine.evaluate_result(
+                is_win=is_win,
+                odds=target["place_odd"],
+                stake=stake
+            )
+
+            # Settle bet in DB
+            self.db.settle_bet(
+                bet_id=bet_id,
+                result=res["result"],
+                pnl=res["pnl"],
+                balance_after=res["balance_after"],
+                peak_after=res["peak_after"],
+                drawdown_pct=res["drawdown_pct"],
+                mdd_pct=res["mdd_trough_pct"]
+            )
+
+            # Update Account State Singleton
+            self.db.update_account_state(
+                current_balance=res["balance_after"],
+                peak_balance=res["peak_after"],
+                max_drawdown=res["mdd_trough_pct"],
+                wins=1 if is_win else 0,
+                losses=0 if is_win else 1
+            )
+
+            # Check and dispatch Telegram Milestones
+            updated_state = self.db.load_account_state()
+            self._check_and_send_milestones(
+                total_bets=updated_state["total_bets"],
+                total_wins=updated_state["total_wins"]
+            )
+
+            # Check if balance hit 0 (Bust condition)
+            if config.BOT_MODE == "LIVE" and res["balance_after"] <= 0:
+                highest_gain = ((res["peak_after"] - config.INITIAL_BALANCE) / config.INITIAL_BALANCE * 100) if config.INITIAL_BALANCE > 0 else 0
+                await self.telegram.notify_bust(
+                    current_balance=0.0,
+                    peak_balance=res["peak_after"],
+                    highest_gain_pct=highest_gain,
+                    total_bets=updated_state["total_bets"],
+                    mdd_trough=res["mdd_trough_pct"]
+                )
+                print("\n[CRITICAL] LIVE account liquidated. Bot halted.")
+            elif config.BOT_MODE == "PAPER" and res["balance_after"] <= 0:
+                dd_r = self.math_engine.get_current_drawdown_r()
+                print(f" ⚠️ [UNCONSTRAINED PAPER MODE] Drawdown extended: {res['drawdown_pct']:.2f}% (-{dd_r:.1f}R). Continuing simulation...")
+
+            # Print Results Banner with R-multiples
+            r_mult = (target["place_odd"] - 1.0) if is_win else -1.0
+            print("\n" + "=" * 55)
+            if is_win:
+                print(f" 🎉 [WIN +{r_mult:.2f}R] Race #{race_id} Runner #{target['runner_num']} placed! PnL: +NGN {res['pnl']:,.2f}")
+            else:
+                print(f" ❌ [LOSS -1.00R] Race #{race_id} Runner #{target['runner_num']} did not place. PnL: -NGN {abs(res['pnl']):,.2f}")
+
+            print(f"    Current Balance:  NGN {res['balance_after']:,.2f}")
+            print(f"    Peak Balance:     NGN {res['peak_after']:,.2f} {'(NEW HIGH-WATER MARK!)' if res['is_new_peak'] else ''}")
+            r_step = 100.0 / config.DEFAULT_DIVISOR
+            dd_r = self.math_engine.get_current_drawdown_r()
+            mdd_r = res['mdd_trough_pct'] / r_step if r_step > 0 else 0
+            print(f"    Current Drawdown: {res['drawdown_pct']:.2f}% (-{dd_r:.1f}R)")
+            print(f"    True MDD Trough:  {res['mdd_trough_pct']:.2f}% (-{mdd_r:.1f}R)")
+            print("=" * 55 + "\n")
+
+        else:
+            print(f"[!] WebSocket resolution timed out for race #{race_id}.")
+            # Fallback resolution for LIVE mode: sync live platform balance
+            if config.BOT_MODE == "LIVE":
+                live_bal = await self.browser_manager.get_account_balance()
+                if live_bal > 0:
+                    is_win = (live_bal > self.math_engine.current_balance)
+                    print(f"[*] Live platform balance fallback check: NGN {live_bal:,.2f} (Inferred: {'WIN' if is_win else 'LOSS'})")
+                    res = self.math_engine.evaluate_result(is_win=is_win, odds=target["place_odd"], stake=stake)
+                    self.db.settle_bet(bet_id=bet_id, result=res["result"], pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
+                    self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=1 if is_win else 0, losses=0 if is_win else 1)
+            elif config.BOT_MODE == "PAPER":
+                print(f"[*] Paper simulation: WebSocket timed out for race #{race_id}. Settling conservative LOSS to preserve ledger integrity.")
+                res = self.math_engine.evaluate_result(is_win=False, odds=target["place_odd"], stake=stake)
+                self.db.settle_bet(bet_id=bet_id, result="LOSS", pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
+                self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=0, losses=1)
 
 async def main():
     bot = VirtualRatchetBot()

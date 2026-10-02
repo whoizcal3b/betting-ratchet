@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from typing import Dict, Any, Callable, Optional
 import config
 
@@ -8,16 +9,25 @@ class VirtusTecWsListener:
         self.callback = callback
         self.resolved_events_queue = asyncio.Queue()
         self.latest_wallet_balance = None
+        self.last_msg_timestamp = time.time()
+        self.connected_url = None
+
+    def is_stream_alive(self, max_idle_seconds: float = 60.0) -> bool:
+        """Returns True if WebSocket has received active frames within max_idle_seconds."""
+        return (time.time() - self.last_msg_timestamp) < max_idle_seconds
 
     def attach_to_page(self, page):
         def on_websocket(ws):
             if "virtual-proxy.virtustec.com" in ws.url:
                 print(f"[WS-LISTENER] Attached to VirtusTec feed: {ws.url}")
+                self.connected_url = ws.url
+                self.last_msg_timestamp = time.time()
                 ws.on("framereceived", self._on_frame_received)
 
         page.on("websocket", on_websocket)
 
     def _on_frame_received(self, payload: str):
+        self.last_msg_timestamp = time.time()
         try:
             if not isinstance(payload, str):
                 return
