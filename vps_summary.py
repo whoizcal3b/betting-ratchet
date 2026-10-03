@@ -48,9 +48,12 @@ def main():
     total_bets = len(bets)
     wins = [b for b in bets if b["result"] == "WIN"]
     losses = [b for b in bets if b["result"] == "LOSS"]
+    voids = [b for b in bets if b["result"] == "VOID"]
     win_count = len(wins)
     loss_count = len(losses)
-    win_rate = (win_count / total_bets * 100) if total_bets > 0 else 0.0
+    void_count = len(voids)
+    settled_count = win_count + loss_count
+    win_rate = (win_count / settled_count * 100) if settled_count > 0 else 0.0
 
     print("\n" + "-" * 65)
     print("                      ACCOUNT SUMMARY")
@@ -77,8 +80,8 @@ def main():
     print("-" * 65)
     print(f"  Total Races Evaluated : {total_races} (Resolved: {resolved_races})")
     print(f"  Total Bets Placed     : {total_bets}")
-    print(f"  Wins / Losses         : {win_count} Wins / {loss_count} Losses")
-    print(f"  Win Rate              : {win_rate:.2f}%")
+    print(f"  Wins / Losses / Voids : {win_count} Wins / {loss_count} Losses ({void_count} Void)")
+    print(f"  Win Rate (Settled)    : {win_rate:.2f}%")
 
     # Streaks
     max_win_streak = 0
@@ -96,6 +99,7 @@ def main():
             cur_win_streak = 0
             if cur_loss_streak > max_loss_streak:
                 max_loss_streak = cur_loss_streak
+        # VOID bets do not interrupt win/loss streaks
 
     print(f"  Max Win Streak        : {max_win_streak}")
     print(f"  Max Loss Streak       : {max_loss_streak}")

@@ -24,8 +24,9 @@ def generate_report():
         print(f"Total Bets Settled:     {state[4]}")
         print(f"Wins:                   {state[5]}")
         print(f"Losses:                 {state[6]}")
-        win_rate = (state[5] / state[4] * 100) if state[4] > 0 else 0.0
-        print(f"Win Rate:               {win_rate:.2f}%\n")
+        settled = (state[5] + state[6])
+        win_rate = (state[5] / settled * 100) if settled > 0 else 0.0
+        print(f"Win Rate (Settled):     {win_rate:.2f}%\n")
     else:
         print("\nNo bets settled yet. Run the bot for a few races to build journal data.\n")
 

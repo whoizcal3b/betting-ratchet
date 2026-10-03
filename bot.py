@@ -330,7 +330,7 @@ class VirtualRatchetBot:
 
         resolved_event = await self.ws_listener.wait_for_resolution(
             target_eblock_id=target_eblock,
-            timeout=50.0
+            timeout=90.0
         )
 
         if resolved_event:
@@ -345,9 +345,11 @@ class VirtualRatchetBot:
                 won_markets=won_markets
             )
 
-            # Evaluate win/loss
+            # Dual-verification of win: Place market won OR runner in top 2 finish positions
             place_key = f"place_{target['runner_num']}"
-            is_win = place_key in won_markets
+            is_in_won_markets = place_key in won_markets
+            is_in_top_two = (len(final_order) >= 2 and str(target['runner_num']) in [str(final_order[0]), str(final_order[1])])
+            is_win = is_in_won_markets or is_in_top_two
 
             res = self.math_engine.evaluate_result(
                 is_win=is_win,
@@ -415,21 +417,31 @@ class VirtualRatchetBot:
             print("=" * 55 + "\n")
 
         else:
-            print(f"[!] WebSocket resolution timed out for race #{race_id}.")
+            print(f"[!] WebSocket resolution timed out for race #{race_id} after 90s.")
             # Fallback resolution for LIVE mode: sync live platform balance
             if config.BOT_MODE == "LIVE":
                 live_bal = await self.browser_manager.get_account_balance()
                 if live_bal > 0:
-                    is_win = (live_bal > self.math_engine.current_balance)
+                    is_win = (live_bal >= (self.math_engine.current_balance + (stake * (target["place_odd"] - 1.0) * 0.5)))
                     print(f"[*] Live platform balance fallback check: NGN {live_bal:,.2f} (Inferred: {'WIN' if is_win else 'LOSS'})")
                     res = self.math_engine.evaluate_result(is_win=is_win, odds=target["place_odd"], stake=stake)
                     self.db.settle_bet(bet_id=bet_id, result=res["result"], pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
                     self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=1 if is_win else 0, losses=0 if is_win else 1)
+                else:
+                    print(f"[!] Live platform balance unverified. Marking bet #{bet_id} as VOID to preserve capital.")
+                    self.db.settle_bet(bet_id=bet_id, result="VOID", pnl=0.0, balance_after=self.math_engine.current_balance, peak_after=self.math_engine.peak_balance, drawdown_pct=self.math_engine.get_current_drawdown_pct(), mdd_pct=self.math_engine.mdd_trough_pct)
             elif config.BOT_MODE == "PAPER":
-                print(f"[*] Paper simulation: WebSocket timed out for race #{race_id}. Settling conservative LOSS to preserve ledger integrity.")
-                res = self.math_engine.evaluate_result(is_win=False, odds=target["place_odd"], stake=stake)
-                self.db.settle_bet(bet_id=bet_id, result="LOSS", pnl=res["pnl"], balance_after=res["balance_after"], peak_after=res["peak_after"], drawdown_pct=res["drawdown_pct"], mdd_pct=res["mdd_trough_pct"])
-                self.db.update_account_state(current_balance=res["balance_after"], peak_balance=res["peak_after"], max_drawdown=res["mdd_trough_pct"], wins=0, losses=1)
+                print(f"[*] [UNRESOLVED RACE #{race_id}] Packet missed after 90s.")
+                print(f"    Settling bet #{bet_id} as VOID (stake refunded, NGN 0.00 PnL) to preserve ledger integrity.")
+                self.db.settle_bet(
+                    bet_id=bet_id,
+                    result="VOID",
+                    pnl=0.0,
+                    balance_after=self.math_engine.current_balance,
+                    peak_after=self.math_engine.peak_balance,
+                    drawdown_pct=self.math_engine.get_current_drawdown_pct(),
+                    mdd_pct=self.math_engine.mdd_trough_pct
+                )
 
 async def main():
     bot = VirtualRatchetBot()
