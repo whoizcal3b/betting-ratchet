@@ -122515,3 +122515,21 @@ Oct 04 17:53:21 ip-172-26-2-203 python3[651]: [BROWSER] Session initializing, ch
 Oct 04 17:53:21 ip-172-26-2-203 python3[651]: [BROWSER] Waiting for VirtusTec game frame to attach...
 Oct 04 17:53:37 ip-172-26-2-203 python3[651]: [BROWSER] VirtusTec Game Frame mounted: https://virtual-games.virtustec.com/desktop-v4/default/?checkScroll=true&containerId=...
 Oct 04 17:53:37 ip-172-26-2-203 python3[651]: [BROWSER] Routing frame to Bristol Speedway...
+Oct 04 17:54:00 ip-172-26-2-203 python3[651]: [WS-LISTENER] Attached to VirtusTec feed: wss://virtual-proxy.virtustec.com/vs
+Oct 04 17:54:06 ip-172-26-2-203 python3[651]: [BROWSER] Market panels not immediately visible. Re-applying hash route...
+Oct 04 17:54:13 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401573 | Final Order: ['2', '1', '3', '4'] | Winning Markets: ['win_2', 'exacta_2_1', 'place_1', 'place_2', 'quinella_1_2', 'even', 'under', 'system_two']
+Oct 04 17:54:22 ip-172-26-2-203 python3[651]: [BROWSER] Bristol Speedway market panels loaded and verified!
+Oct 04 17:54:22 ip-172-26-2-203 python3[651]: [*] Starting continuous 2-minute race cycle monitoring...
+Oct 04 17:54:30 ip-172-26-2-203 python3[651]: [*] Race #3401575 | Starts in 90s | Track: Bristol
+Oct 04 17:54:57 ip-172-26-2-203 python3[651]: [*] Race #3401575 | Starts in 60s | Track: Bristol
+Oct 04 17:55:27 ip-172-26-2-203 python3[651]: [*] Race #3401575 | Starts in 29s | Track: Bristol
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]: [*] Race #3401575 | Starts in 24s | Track: Bristol
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401575 in Bet Window (24s remaining)!
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]:       #1 Anatol Mullen      | WIN: 2.91 | PLACE: 1.50
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]:       #2 Briscoe Logan      | WIN: 2.60 | PLACE: 1.40
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]:       #3 Hans Kingston      | WIN: 5.23 | PLACE: 2.39
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]:       #4 Manny Clarke       | WIN: 5.51 | PLACE: 2.50
+Oct 04 17:55:44 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
+Oct 04 17:55:45 ip-172-26-2-203 python3[651]: [+] Race #3401575 skipped. Waiting for next race in cycle...
+Oct 04 17:55:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401575 | Final Order: ['2', '1', '4', '3'] | Winning Markets: ['win_2', 'exacta_2_1', 'place_1', 'place_2', 'quinella_1_2', 'even', 'under', 'system_two']
