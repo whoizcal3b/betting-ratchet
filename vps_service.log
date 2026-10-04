@@ -122533,3 +122533,136 @@ Oct 04 17:55:44 ip-172-26-2-203 python3[651]:       #4 Manny Clarke       | WIN:
 Oct 04 17:55:44 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
 Oct 04 17:55:45 ip-172-26-2-203 python3[651]: [+] Race #3401575 skipped. Waiting for next race in cycle...
 Oct 04 17:55:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401575 | Final Order: ['2', '1', '4', '3'] | Winning Markets: ['win_2', 'exacta_2_1', 'place_1', 'place_2', 'quinella_1_2', 'even', 'under', 'system_two']
+Oct 04 17:56:55 ip-172-26-2-203 python3[651]: [*] Race #3401577 | Starts in 60s | Track: Bristol
+Oct 04 17:57:10 ip-172-26-2-203 python3[651]: [*] Race #3401577 | Starts in 45s | Track: Bristol
+Oct 04 17:57:34 ip-172-26-2-203 python3[651]: [*] Race #3401577 | Starts in 28s | Track: Bristol
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]: [*] Race #3401577 | Starts in 19s | Track: Bristol
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401577 in Bet Window (19s remaining)!
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]:       #1 Briscoe Logan      | WIN: 2.79 | PLACE: 1.47
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]:       #2 Malcolm Farnham    | WIN: 2.99 | PLACE: 1.54
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]:       #3 Andrzej Bosko      | WIN: 4.52 | PLACE: 2.13
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]:       #4 Bastien Traver     | WIN: 5.36 | PLACE: 2.47
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
+Oct 04 17:57:40 ip-172-26-2-203 python3[651]: [+] Race #3401577 skipped. Waiting for next race in cycle...
+Oct 04 17:57:57 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401577 | Final Order: ['3', '1', '2', '4'] | Winning Markets: ['win_3', 'exacta_3_1', 'place_1', 'place_3', 'quinella_1_3', 'odd', 'over', 'system_two']
+Oct 04 17:59:26 ip-172-26-2-203 python3[651]: [*] Race #3401579 | Starts in 29s | Track: Bristol
+Oct 04 17:59:28 ip-172-26-2-203 python3[651]: [*] Race #3401579 | Starts in 27s | Track: Bristol
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]: [*] Race #3401579 | Starts in 25s | Track: Bristol
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401579 in Bet Window (25s remaining)!
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]:       #1 Quentin Stefan     | WIN: 2.61 | PLACE: 1.40
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]:       #2 Jarle Seward       | WIN: 2.87 | PLACE: 1.48
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]:       #3 Bastien Traver     | WIN: 6.04 | PLACE: 2.72
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]:       #4 Manny Clarke       | WIN: 4.91 | PLACE: 2.26
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
+Oct 04 17:59:30 ip-172-26-2-203 python3[651]: [+] Race #3401579 skipped. Waiting for next race in cycle...
+Oct 04 17:59:57 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401579 | Final Order: ['2', '1', '4', '3'] | Winning Markets: ['win_2', 'exacta_2_1', 'place_1', 'place_2', 'quinella_1_2', 'even', 'under', 'system_two']
+Oct 04 18:00:09 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 105s | Track: Bristol
+Oct 04 18:00:24 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 90s | Track: Bristol
+Oct 04 18:00:54 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 60s | Track: Bristol
+Oct 04 18:01:09 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 45s | Track: Bristol
+Oct 04 18:01:24 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 30s | Track: Bristol
+Oct 04 18:01:26 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 28s | Track: Bristol
+Oct 04 18:01:28 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 26s | Track: Bristol
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [*] Race #3401581 | Starts in 24s | Track: Bristol
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401581 in Bet Window (24s remaining)!
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]:       #1 Mickey Stenger     | WIN: 2.68 | PLACE: 1.40
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]:       #2 Russel Horn        | WIN: 2.59 | PLACE: 1.37
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]:       #3 Magnus Smythe      | WIN: 4.75 | PLACE: 2.17
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]:   (*) #4 Bastien Traver     | WIN: 7.64 | PLACE: 3.34
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [DECISION] BET - Single qualifying runner
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [EXECUTING BET [PAPER/SIM]] Staking NGN 48.80 on Runner #4 (Bastien Traver) @ 3.34
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [+] Paper bet registered! Awaiting live race finish via WebSocket...
+Oct 04 18:01:31 ip-172-26-2-203 python3[651]: [*] [SETTLEMENT WORKER] Tracking live resolution for Race #3401581 (Runner #4)...
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401581 | Final Order: ['1', '3', '2', '4'] | Winning Markets: ['win_1', 'exacta_1_3', 'place_1', 'place_3', 'quinella_1_3', 'odd', 'under', 'system_two']
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:  ⚠️ [UNCONSTRAINED PAPER MODE] Drawdown extended: 134.07% (-33.5R). Continuing simulation...
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:  ❌ [LOSS -1.00R] Race #3401581 Runner #4 did not place. PnL: -NGN 48.80
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:     Current Balance:  NGN -415.70
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:     Peak Balance:     NGN 1,220.06
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:     Current Drawdown: 134.07% (-33.5R)
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]:     True MDD Trough:  161.39% (-40.3R)
+Oct 04 18:01:57 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:02:10 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 105s | Track: Bristol
+Oct 04 18:02:25 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 90s | Track: Bristol
+Oct 04 18:02:40 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 75s | Track: Bristol
+Oct 04 18:02:55 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 60s | Track: Bristol
+Oct 04 18:03:09 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 45s | Track: Bristol
+Oct 04 18:03:24 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 30s | Track: Bristol
+Oct 04 18:03:27 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 28s | Track: Bristol
+Oct 04 18:03:29 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 26s | Track: Bristol
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [*] Race #3401583 | Starts in 24s | Track: Bristol
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401583 in Bet Window (24s remaining)!
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]:   (*) #1 Mieszko Mckowen    | WIN: 7.28 | PLACE: 3.23
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]:       #2 Bastien Traver     | WIN: 2.64 | PLACE: 1.41
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]:       #3 Manny Clarke       | WIN: 3.94 | PLACE: 1.88
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]:       #4 Svante Ecclestone  | WIN: 3.03 | PLACE: 1.54
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [DECISION] BET - Single qualifying runner
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [EXECUTING BET [PAPER/SIM]] Staking NGN 48.80 on Runner #1 (Mieszko Mckowen) @ 3.23
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [+] Paper bet registered! Awaiting live race finish via WebSocket...
+Oct 04 18:03:31 ip-172-26-2-203 python3[651]: [*] [SETTLEMENT WORKER] Tracking live resolution for Race #3401583 (Runner #1)...
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401583 | Final Order: ['2', '3', '1', '4'] | Winning Markets: ['win_2', 'exacta_2_3', 'place_2', 'place_3', 'quinella_2_3', 'even', 'under', 'system_two']
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:  ⚠️ [UNCONSTRAINED PAPER MODE] Drawdown extended: 138.07% (-34.5R). Continuing simulation...
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:  ❌ [LOSS -1.00R] Race #3401583 Runner #1 did not place. PnL: -NGN 48.80
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:     Current Balance:  NGN -464.50
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:     Peak Balance:     NGN 1,220.06
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:     Current Drawdown: 138.07% (-34.5R)
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]:     True MDD Trough:  161.39% (-40.3R)
+Oct 04 18:03:58 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:05:26 ip-172-26-2-203 python3[651]: [*] Race #3401585 | Starts in 29s | Track: Bristol
+Oct 04 18:05:28 ip-172-26-2-203 python3[651]: [*] Race #3401585 | Starts in 27s | Track: Bristol
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]: [*] Race #3401585 | Starts in 24s | Track: Bristol
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401585 in Bet Window (24s remaining)!
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]:       #1 Quentin Stefan     | WIN: 2.75 | PLACE: 1.47
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]:       #2 Mieszko Mckowen    | WIN: 3.89 | PLACE: 1.89
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]:       #3 Malcolm Farnham    | WIN: 3.87 | PLACE: 1.89
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]:       #4 Manny Clarke       | WIN: 4.53 | PLACE: 2.15
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
+Oct 04 18:05:30 ip-172-26-2-203 python3[651]: [+] Race #3401585 skipped. Waiting for next race in cycle...
+Oct 04 18:05:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401585 | Final Order: ['2', '1', '3', '4'] | Winning Markets: ['win_2', 'exacta_2_1', 'place_1', 'place_2', 'quinella_1_2', 'even', 'under', 'system_two']
+Oct 04 18:06:24 ip-172-26-2-203 python3[651]: [*] Race #3401587 | Starts in 90s | Track: Bristol
+Oct 04 18:07:26 ip-172-26-2-203 python3[651]: [*] Race #3401587 | Starts in 29s | Track: Bristol
+Oct 04 18:07:28 ip-172-26-2-203 python3[651]: [*] Race #3401587 | Starts in 26s | Track: Bristol
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [*] Race #3401587 | Starts in 24s | Track: Bristol
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401587 in Bet Window (24s remaining)!
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]:   (*) #1 Anatol Mullen      | WIN: 7.52 | PLACE: 3.30
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]:       #2 Mickey Stenger     | WIN: 2.68 | PLACE: 1.41
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]:       #3 Bastien Traver     | WIN: 4.49 | PLACE: 2.08
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]:       #4 Svante Ecclestone  | WIN: 2.70 | PLACE: 1.41
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [DECISION] BET - Single qualifying runner
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [EXECUTING BET [PAPER/SIM]] Staking NGN 48.80 on Runner #1 (Anatol Mullen) @ 3.30
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [+] Paper bet registered! Awaiting live race finish via WebSocket...
+Oct 04 18:07:31 ip-172-26-2-203 python3[651]: [*] [SETTLEMENT WORKER] Tracking live resolution for Race #3401587 (Runner #1)...
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401587 | Final Order: ['4', '2', '1', '3'] | Winning Markets: ['win_4', 'exacta_4_2', 'place_2', 'place_4', 'quinella_2_4', 'even', 'over', 'system_two']
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:  ⚠️ [UNCONSTRAINED PAPER MODE] Drawdown extended: 142.07% (-35.5R). Continuing simulation...
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:  ❌ [LOSS -1.00R] Race #3401587 Runner #1 did not place. PnL: -NGN 48.80
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:     Current Balance:  NGN -513.30
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:     Peak Balance:     NGN 1,220.06
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:     Current Drawdown: 142.07% (-35.5R)
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]:     True MDD Trough:  161.39% (-40.3R)
+Oct 04 18:07:58 ip-172-26-2-203 python3[651]: =======================================================
+Oct 04 18:08:10 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 105s | Track: Bristol
+Oct 04 18:08:24 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 90s | Track: Bristol
+Oct 04 18:08:39 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 75s | Track: Bristol
+Oct 04 18:08:54 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 60s | Track: Bristol
+Oct 04 18:09:09 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 45s | Track: Bristol
+Oct 04 18:09:24 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 30s | Track: Bristol
+Oct 04 18:09:27 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 28s | Track: Bristol
+Oct 04 18:09:29 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 26s | Track: Bristol
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]: [*] Race #3401589 | Starts in 24s | Track: Bristol
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]: -------------------------------------------------------
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]: [TRIGGER] Race #3401589 in Bet Window (24s remaining)!
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]:       #1 Jarle Seward       | WIN: 6.01 | PLACE: 2.70
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]:       #2 Briscoe Logan      | WIN: 2.73 | PLACE: 1.43
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]:       #3 Bastien Traver     | WIN: 2.74 | PLACE: 1.44
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]:       #4 Svante Ecclestone  | WIN: 4.95 | PLACE: 2.28
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]: [DECISION] SKIP - No runners with Place odds >= 2.80
+Oct 04 18:09:31 ip-172-26-2-203 python3[651]: [+] Race #3401589 skipped. Waiting for next race in cycle...
+Oct 04 18:09:58 ip-172-26-2-203 python3[651]: [WS-LISTENER] SPEEDWAY BRISTOL RESOLVED! Race #3401589 | Final Order: ['2', '3', '1', '4'] | Winning Markets: ['win_2', 'exacta_2_3', 'place_2', 'place_3', 'quinella_2_3', 'even', 'under', 'system_two']
