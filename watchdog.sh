@@ -46,9 +46,13 @@ while true; do
 
     # 3. Check WireGuard VPN Health & Active Nigerian Geo-Lock
     if command -v wg >/dev/null 2>&1; then
-        IS_NG=$(curl -s --max-time 4 ip-api.com/json 2>/dev/null | grep -i "Nigeria" || echo "")
+        IS_NG=$(curl -s --max-time 5 ip-api.com/json 2>/dev/null | grep -i "Nigeria" || echo "")
         if [ -z "$IS_NG" ]; then
-            echo "[$(date)] [WATCHDOG CRITICAL] VPN tunnel not routing through Nigeria! Self-healing WireGuard wg0..."
+            sleep 2
+            IS_NG=$(curl -s --max-time 5 ip-api.com/json 2>/dev/null | grep -i "Nigeria" || echo "")
+        fi
+        if [ -z "$IS_NG" ]; then
+            echo "[$(date)] [WATCHDOG CRITICAL] VPN tunnel confirmed down! Self-healing WireGuard wg0..."
             sudo ip link delete wg0 2>/dev/null || true
             sudo wg-quick up wg0 2>/dev/null || true
             sudo ip link set dev wg0 mtu 1360 2>/dev/null || true

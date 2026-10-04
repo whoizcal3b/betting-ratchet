@@ -17,12 +17,14 @@ class VirtusTecWsListener:
         self._attached_page = None
 
     def is_stream_alive(self, max_idle_seconds: float = 60.0) -> bool:
-        """Returns True if WebSocket has received active frames within max_idle_seconds."""
+        """Returns True if WebSocket is connected and has received active frames within max_idle_seconds."""
+        if not self.is_connected:
+            return False
         return (time.time() - self.last_msg_timestamp) < max_idle_seconds
 
     def attach_to_page(self, page):
-        """Attaches WebSocket listeners to page, preventing duplicate handlers on page re-attaches."""
-        if self._attached_page == page:
+        """Attaches WebSocket listeners to page, ensuring active listener on page reloads."""
+        if self._attached_page == page and self.is_connected:
             return
         self._attached_page = page
 
@@ -39,6 +41,7 @@ class VirtusTecWsListener:
         page.on("websocket", on_websocket)
 
     def _on_ws_close(self):
+        print("[WS-LISTENER] VirtusTec WebSocket closed by remote server.")
         self.is_connected = False
 
     def _on_frame_received(self, payload: str):

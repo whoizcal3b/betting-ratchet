@@ -160,10 +160,17 @@ class VirtualRatchetBot:
                 except Exception:
                     pass
 
-                # 24/7 WebSocket Stream Liveness Check
+                # 24/7 WebSocket Stream Liveness Check: Self-heal disconnected socket
                 if not self.ws_listener.is_stream_alive(max_idle_seconds=60.0):
-                    print("[WATCHDOG] WebSocket feed idle for >60s. Refreshing frame route to restore stream...")
-                    await self.browser_manager.ensure_bristol_route()
+                    print("[WATCHDOG] WebSocket feed idle for >60s. Reconnecting VirtusTec stream to restore live resolutions...")
+                    try:
+                        await self.browser_manager.navigate_to_bristol()
+                        self.ws_listener.attach_to_page(self.browser_manager.page)
+                        print("[WATCHDOG] VirtusTec stream reconnected and verified live!")
+                    except Exception as stream_err:
+                        print(f"[WATCHDOG] Reconnect error: {stream_err}. Restoring browser session...")
+                        await self.browser_manager.restart_and_recover()
+                        self.ws_listener.attach_to_page(self.browser_manager.page)
 
                 # 24/7 Browser Health Verification
                 if not self.browser_manager.is_healthy():
@@ -330,8 +337,22 @@ class VirtualRatchetBot:
 
         resolved_event = await self.ws_listener.wait_for_resolution(
             target_eblock_id=target_eblock,
-            timeout=90.0
+            timeout=80.0
         )
+
+        # Fallback Tier 2: If resolution packet was delayed, trigger active frame refresh to pull recent results
+        if not resolved_event:
+            print(f"[*] [SETTLEMENT WORKER] Race #{race_id} resolution delayed. Triggering active frame refresh to pull recent results...")
+            try:
+                await self.browser_manager.navigate_to_bristol()
+                self.ws_listener.attach_to_page(self.browser_manager.page)
+                # Wait up to 25 seconds for the reconnected stream to deliver the resolution packet
+                resolved_event = await self.ws_listener.wait_for_resolution(
+                    target_eblock_id=target_eblock,
+                    timeout=25.0
+                )
+            except Exception as ref_err:
+                print(f"[!] Fallback refresh notice: {ref_err}")
 
         if resolved_event:
             won_markets = resolved_event["won_markets"]
