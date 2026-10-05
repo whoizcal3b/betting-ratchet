@@ -45,8 +45,13 @@ class VirtualRatchetBot:
         )
 
         self.odds_analyzer = OddsAnalyzer(min_odds=config.TARGET_ODDS_MIN)
-        self.ws_listener = VirtusTecWsListener()
+        self.ws_listener = VirtusTecWsListener(callback=self._on_resolution)
         self.telegram = TelegramNotifier()
+
+        # Stream reconnect coordination (only the main loop ever reloads the page)
+        self.reconnect_requested = False
+        self._last_reconnect_ts = 0.0
+        self.current_seconds_left: Optional[int] = None
         self.browser_manager = BrowserManager(
             user_data_dir=config.USER_DATA_DIR,
             auth_path=config.AUTH_FILE,
@@ -102,6 +107,40 @@ class VirtualRatchetBot:
             self.last_reported_milestone = current_milestone_tier
             self.db.update_last_milestone(current_milestone_tier)
 
+    def _on_resolution(self, event: Dict[str, Any]):
+        """Records EVERY Bristol race result to the DB, whether or not we bet on it."""
+        try:
+            final_order = event.get("final_order") or []
+            won = event.get("won_markets") or []
+            is_bristol = (event.get("playlist_id") == config.BRISTOL_PLAYLIST_ID) or (
+                len(final_order) == 4 and any("place_" in m for m in won))
+            eid = event.get("eblock_id")
+            if is_bristol and eid is not None:
+                self.db.record_race_result(str(eid), int(eid) if str(eid).isdigit() else None, final_order, won)
+        except Exception as e:
+            print(f"[!] Result ledger notice: {e}")
+
+    async def _reconnect_stream(self, reason: str) -> bool:
+        """Single, guarded page reload to restore the VirtusTec feed."""
+        now = time.time()
+        if now - self._last_reconnect_ts < 45:
+            return False
+        # Never reload while a race is in (or about to enter) its bet window
+        if self.current_seconds_left is not None and 4 <= self.current_seconds_left <= 35:
+            return False
+        self._last_reconnect_ts = now
+        print(f"[WATCHDOG] {reason} Reconnecting VirtusTec stream...")
+        try:
+            await self.browser_manager.navigate_to_bristol()
+            self.ws_listener.attach_to_page(self.browser_manager.page)
+        except Exception as stream_err:
+            print(f"[WATCHDOG] Reconnect error: {stream_err}. Restoring browser session...")
+            await self.browser_manager.restart_and_recover()
+            self.ws_listener.attach_to_page(self.browser_manager.page)
+        self.reconnect_requested = False
+        print("[WATCHDOG] Stream reconnect complete.")
+        return True
+
     async def run(self):
         if config.BOT_MODE == "LIVE" and self.math_engine.current_balance <= 0:
             print("\n" + "=" * 65)
@@ -149,6 +188,17 @@ class VirtualRatchetBot:
         races_since_last_hygiene = 0
         no_race_watchdog_ticks = 0
 
+        # Restart recovery: bets left PENDING by a previous process get a settlement worker again
+        for pb in self.db.get_pending_bets():
+            print(f"[RECOVERY] Re-tracking pending bet #{pb['bet_id']} (Race #{pb['race_id']}, Runner #{pb['runner_num']})")
+            processed_races.add(str(pb["race_id"]))
+            asyncio.create_task(self._settle_bet_async(
+                bet_id=pb["bet_id"],
+                race_id=str(pb["race_id"]),
+                target={"runner_num": pb["runner_num"], "runner_name": pb["runner_name"], "place_odd": pb["place_odd"]},
+                stake=pb["stake"]
+            ))
+
         print("\n[*] Starting continuous 2-minute race cycle monitoring...\n")
 
         while True:
@@ -160,17 +210,10 @@ class VirtualRatchetBot:
                 except Exception:
                     pass
 
-                # 24/7 WebSocket Stream Liveness Check: Self-heal disconnected socket
-                if not self.ws_listener.is_stream_alive(max_idle_seconds=60.0):
-                    print("[WATCHDOG] WebSocket feed idle for >60s. Reconnecting VirtusTec stream to restore live resolutions...")
-                    try:
-                        await self.browser_manager.navigate_to_bristol()
-                        self.ws_listener.attach_to_page(self.browser_manager.page)
-                        print("[WATCHDOG] VirtusTec stream reconnected and verified live!")
-                    except Exception as stream_err:
-                        print(f"[WATCHDOG] Reconnect error: {stream_err}. Restoring browser session...")
-                        await self.browser_manager.restart_and_recover()
-                        self.ws_listener.attach_to_page(self.browser_manager.page)
+                # 24/7 WebSocket Stream Liveness Check: Self-heal disconnected socket (guarded, single path)
+                if self.reconnect_requested or not self.ws_listener.is_stream_alive(max_idle_seconds=60.0):
+                    reason = "Settlement worker requested refresh." if self.reconnect_requested else "WebSocket feed idle for >60s."
+                    await self._reconnect_stream(reason)
 
                 # 24/7 Browser Health Verification
                 if not self.browser_manager.is_healthy():
@@ -209,6 +252,7 @@ class VirtualRatchetBot:
 
                 race_id = race["race_id"]
                 seconds_left = race["seconds_left"]
+                self.current_seconds_left = seconds_left
 
                 # If this race has already been bet or processed, wait
                 if race_id in processed_races:
@@ -335,24 +379,31 @@ class VirtualRatchetBot:
         target_eblock = int(race_id) if race_id.isdigit() else None
         print(f"[*] [SETTLEMENT WORKER] Tracking live resolution for Race #{race_id} (Runner #{target['runner_num']})...")
 
-        resolved_event = await self.ws_listener.wait_for_resolution(
-            target_eblock_id=target_eblock,
-            timeout=80.0
-        )
+        # Tier 0: result may already be in the ledger (e.g. recovered after a restart)
+        resolved_event = None
+        stored = self.db.get_race_result(race_id)
+        if stored:
+            resolved_event = stored
 
-        # Fallback Tier 2: If resolution packet was delayed, trigger active frame refresh to pull recent results
+        # Tier 1: wait on the live feed
         if not resolved_event:
-            print(f"[*] [SETTLEMENT WORKER] Race #{race_id} resolution delayed. Triggering active frame refresh to pull recent results...")
-            try:
-                await self.browser_manager.navigate_to_bristol()
-                self.ws_listener.attach_to_page(self.browser_manager.page)
-                # Wait up to 25 seconds for the reconnected stream to deliver the resolution packet
-                resolved_event = await self.ws_listener.wait_for_resolution(
-                    target_eblock_id=target_eblock,
-                    timeout=25.0
-                )
-            except Exception as ref_err:
-                print(f"[!] Fallback refresh notice: {ref_err}")
+            resolved_event = await self.ws_listener.wait_for_resolution(
+                target_eblock_id=target_eblock,
+                timeout=80.0
+            )
+
+        # Tier 2: ask the main loop for a guarded reconnect (it never reloads inside a bet window), then keep waiting
+        if not resolved_event:
+            print(f"[*] [SETTLEMENT WORKER] Race #{race_id} result not received in 80s. Requesting stream reconnect...")
+            self.reconnect_requested = True
+            resolved_event = await self.ws_listener.wait_for_resolution(
+                target_eblock_id=target_eblock,
+                timeout=100.0
+            )
+            if not resolved_event:
+                stored = self.db.get_race_result(race_id)
+                if stored:
+                    resolved_event = stored
 
         if resolved_event:
             won_markets = resolved_event["won_markets"]

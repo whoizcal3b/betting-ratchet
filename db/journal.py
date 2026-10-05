@@ -261,3 +261,35 @@ class DatabaseJournal:
             WHERE bet_id = ?
             """, (result, pnl, balance_after, peak_after, drawdown_pct, mdd_pct, bet_id))
             conn.commit()
+
+    def record_race_result(self, race_id: str, eblock_id: Optional[int], final_order: List[str], won_markets: List[str]):
+        """Stores the result of EVERY Bristol race seen on the feed (bet on or not), creating the row if needed.
+        This is the master chronological ledger used for gap detection and restart recovery."""
+        with self._get_conn() as conn:
+            conn.execute("""
+            INSERT OR IGNORE INTO races (race_id, eblock_id, track_name, status)
+            VALUES (?, ?, 'Bristol', 'PENDING')
+            """, (race_id, eblock_id))
+            conn.commit()
+        self.settle_race(race_id=race_id, eblock_id=eblock_id, final_order=final_order, won_markets=won_markets)
+
+    def get_race_result(self, race_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT eblock_id, final_order, won_markets FROM races WHERE race_id = ? AND status = 'RESOLVED'",
+                (race_id,)
+            ).fetchone()
+            if not row or not row["final_order"]:
+                return None
+            return {
+                "eblock_id": row["eblock_id"],
+                "final_order": json.loads(row["final_order"]),
+                "won_markets": json.loads(row["won_markets"] or "[]"),
+            }
+
+    def get_pending_bets(self) -> List[Dict[str, Any]]:
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                "SELECT bet_id, race_id, runner_num, runner_name, place_odd, stake FROM bets WHERE result = 'PENDING' ORDER BY bet_id ASC"
+            ).fetchall()
+            return [dict(r) for r in rows]

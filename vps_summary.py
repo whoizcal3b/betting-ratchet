@@ -104,6 +104,51 @@ def main():
     print(f"  Max Win Streak        : {max_win_streak}")
     print(f"  Max Loss Streak       : {max_loss_streak}")
 
+    # ---------------- DATA COMPLETENESS AUDIT ----------------
+    try:
+        print("\n" + "-" * 65)
+        print("                  DATA COMPLETENESS AUDIT")
+        print("-" * 65)
+        ids = sorted(int(r[0]) for r in cursor.execute("SELECT race_id FROM races").fetchall() if str(r[0]).isdigit())
+        evaluated = set(int(r[0]) for r in cursor.execute("SELECT DISTINCT race_id FROM race_odds").fetchall() if str(r[0]).isdigit())
+        resolved = set(int(r[0]) for r in cursor.execute("SELECT race_id FROM races WHERE status = 'RESOLVED'").fetchall() if str(r[0]).isdigit())
+        if ids:
+            expected = list(range(ids[0], ids[-1] + 1, 2))   # Bristol race IDs step by 2
+            seen = set(ids)
+            missing_entirely = [r for r in expected if r not in seen]
+            not_evaluated = [r for r in expected if r not in evaluated]
+            not_resolved = [r for r in expected if r not in resolved]
+            n = len(expected)
+            print(f"  Race ID span          : #{ids[0]} -> #{ids[-1]} ({n} races expected)")
+            print(f"  Races evaluated (odds): {len(evaluated & set(expected))}/{n} ({(n-len(not_evaluated))/n*100:.1f}%)")
+            print(f"  Races with result     : {len(resolved & set(expected))}/{n} ({(n-len(not_resolved))/n*100:.1f}%)")
+            print(f"  Races with no trace   : {len(missing_entirely)}")
+
+            # Group missed evaluations into contiguous gaps
+            gaps, start, prev = [], None, None
+            for r in not_evaluated:
+                if start is None:
+                    start = prev = r
+                elif r == prev + 2:
+                    prev = r
+                else:
+                    gaps.append((start, prev)); start = prev = r
+            if start is not None:
+                gaps.append((start, prev))
+            if gaps:
+                print(f"  Evaluation gaps       : {len(gaps)} (largest {max((b-a)//2+1 for a,b in gaps)} races)")
+                for a, b in gaps[:10]:
+                    print(f"     - #{a} -> #{b} ({(b-a)//2+1} race(s) not evaluated)")
+                if len(gaps) > 10:
+                    print(f"     ... {len(gaps)-10} more")
+        pending = [b for b in bets if b["result"] == "PENDING"]
+        print(f"  Bets VOID (no result) : {void_count}")
+        print(f"  Bets still PENDING    : {len(pending)}")
+        complete = (void_count == 0)
+        print(f"  VERDICT               : {'COMPLETE - every bet has a verified result' if complete else 'INCOMPLETE - see counts above'}")
+    except Exception as e:
+        print(f"[!] Completeness audit notice: {e}")
+
     # Export CSV of all bets
     csv_file = "vps_bets.csv"
     try:
